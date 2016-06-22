@@ -1,9 +1,8 @@
-# super-spoon
 import os,sys
 from PIL import Image
 from PIL.ExifTags import TAGS
-import numpy as np
-import scipy.io as sio
+#import numpy as np
+#import scipy.io as sio
 
 
 f = []
@@ -25,7 +24,7 @@ Aperture_List = []
 Iso_List      = []
 Focall_List   = []
 
-mypath = 'C:\Users\Lukas\Documents\Bilder'
+mypath = 'E:\Bilder'
 if not os.path.exists(mypath):
     os.makedirs(mypath)
 
@@ -39,6 +38,9 @@ def get_field(exif, field):
         if TAGS.get(k) == field:
             return v
 
+
+    return None
+
 def exif(root,file,level):
     subindent = ' '*4*(level+2)
     img = Image.open(root +'/'+file)
@@ -46,17 +48,25 @@ def exif(root,file,level):
 
     # ExposureTime
     ExpT = get_field(exif_data, 'ExposureTime')
-    Exp = str(ExpT[0])+'/'+str(ExpT[1])
+    if ExpT == None:
+        Exp = 999
+    else:
+        Exp = str(ExpT[0])+'/'+str(ExpT[1])
     print  'ExposureTime = ', Exp
 
     # ApertureValue
 
     ap = []
     ap = get_field(exif_data, 'ApertureValue')
-    if ap[0]>20:
-        Ap = root2**(ap[0]/ap[1])
+    if ap != None:
+        if ap[0]>20:
+            Ap = root2**(ap[0]/ap[1])
+            Ap = round(Ap,1)
+        if ap[0]<20:
+            Ap = root2**ap[0]
+            Ap = round(Ap,1)
     else:
-        Ap = root2**ap[0]
+        Ap = 999
     print 'Aperture = ', Ap
 
     # Date
@@ -64,7 +74,9 @@ def exif(root,file,level):
     print 'Date = ', Date
 
     # FocalLength
-    Focall = get_field(exif_data, 'FocalLength')[0]
+    Focall = get_field(exif_data, 'FocalLength')
+    if Focall != None:
+        Focall = Focall[0]
     print 'FocalLength = ',  Focall
 
     # Iso
@@ -122,20 +134,62 @@ def depth_frst(mypath):
     print "total files = ",counter
 
 
+def show(af,no):
+    for i in range(len(af)):
+        print af[i],"->",no[i]
+
+
+def count(data):
+    n = len(data)
+
+    af = []
+    no = []
+    j = 0
+
+    for i in range(n):
+        if i == 0:
+            af.append(data[i])
+            no.append(0)
+
+        if af[j] == data[i]:
+            no[j] = no[j] + 1
+
+        else:
+            af.append(data[i])
+            no.append(1)
+            j = j + 1
+
+    show(af,no)
+    return af,no
+
+
+
+print "Start..."
+wait = raw_input('wait... for input')
 depth_frst(mypath)
 
 ExpT_List.sort()
-tt = np.array(ExpT_List)
-sio.savemat(mypath + '/ExpT_List.mat', {'Ex':tt})
+#tt = np.array(ExpT_List)
+#sio.savemat(mypath + '/ExpT_List.mat', {'Ex':tt})
 
 Aperture_List.sort()
-tt = np.array(Aperture_List)
-sio.savemat(mypath + '/Aperture_List.mat', {'Ap':tt})
+#tt = np.array(Aperture_List)
+#sio.savemat(mypath + '/Aperture_List.mat', {'Ap':tt})
 
 Focall_List.sort()
-tt = np.array(Focall_List)
-sio.savemat(mypath + '/Focall_List.mat', {'FL':tt})
+#tt = np.array(Focall_List)
+#sio.savemat(mypath + '/Focall_List.mat', {'FL':tt})
 
 Iso_List.sort()
-tt = np.array(Iso_List)
-sio.savemat(mypath + '/Iso_List.mat', {'ISO':tt})
+#tt = np.array(Iso_List)
+#sio.savemat(mypath + '/Iso_List.mat', {'ISO':tt})
+
+print "ISO:"
+count(Iso_List)
+
+
+print "Aperture:"
+count(Aperture_List)
+
+print "FocalLength:"
+count(Focall_List)
